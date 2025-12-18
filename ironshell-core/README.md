@@ -12,6 +12,7 @@ Most AI apps are just wrappers around LLM APIs. Anyone can copy them. **IronShel
 2. **Proprietary Dataset**: Competitors can clone your code, but NOT your corrections
 3. **Liability Shield**: Hard-coded guardrails protect you legally
 4. **Workflow Integration**: Meets users where they are (messy files, not forms)
+5. **N8N Workflow Automation**: Document, search, and visualize automation workflows
 
 ## 🏗️ Architecture
 
@@ -159,12 +160,14 @@ ironshell-core/
 │   │   │   ├── ingestor.py      # File parsing (Moment of Truth)
 │   │   │   ├── ai_engine.py     # RAG pipeline
 │   │   │   ├── feedback_loop.py # Save corrections (THE MOAT)
-│   │   │   └── guardrails.py    # Liability shield
+│   │   │   ├── guardrails.py    # Liability shield
+│   │   │   └── workflow_db.py   # N8N workflow database
 │   │   └── routers/
 │   │       ├── ingest.py
 │   │       ├── analysis.py
 │   │       ├── feedback.py
-│   │       └── trades.py
+│   │       ├── trades.py
+│   │       └── workflows.py     # Workflow automation API
 │   ├── requirements.txt
 │   └── .env.example
 │
@@ -172,13 +175,17 @@ ironshell-core/
 │   ├── app/
 │   │   ├── layout.tsx
 │   │   ├── page.tsx             # Main dashboard
-│   │   └── globals.css
+│   │   ├── globals.css
+│   │   └── workflows/
+│   │       └── page.tsx         # Workflow browser
 │   ├── components/
 │   │   ├── SmartEditor.tsx      # THE KEY COMPONENT
 │   │   ├── FileUploader.tsx
 │   │   ├── GuardrailPanel.tsx
 │   │   ├── FlywheelStats.tsx
-│   │   └── TradeList.tsx
+│   │   ├── TradeList.tsx
+│   │   ├── WorkflowList.tsx     # Workflow browser
+│   │   └── WorkflowViewer.tsx   # Workflow detail + diagram
 │   ├── lib/
 │   │   └── api.ts
 │   ├── types/
@@ -187,6 +194,43 @@ ironshell-core/
 │   └── .env.example
 │
 └── README.md
+```
+
+## 🔄 Workflow Automation (N8N Integration)
+
+IronShell includes a complete N8N workflow documentation and management system:
+
+### Features
+
+- **Workflow Search**: Full-text search across all workflow metadata
+- **Visual Diagrams**: Mermaid.js flowcharts auto-generated from workflow JSON
+- **Category Filtering**: Filter by trigger type, complexity, integrations
+- **Security**: Path traversal protection, rate limiting, admin authentication
+
+### Workflow API Endpoints
+
+```
+GET  /api/v1/workflows              # Search/list workflows
+GET  /api/v1/workflows/{filename}   # Get workflow details + diagram
+GET  /api/v1/workflows/stats        # Database statistics
+GET  /api/v1/workflows/categories   # Available categories
+POST /api/v1/workflows/import       # Import new workflow
+POST /api/v1/workflows/reindex      # Reindex all workflows (admin)
+```
+
+### Adding Workflows
+
+Place N8N workflow JSON files in `data/workflows/` and they'll be automatically indexed:
+
+```bash
+# Create workflows directory
+mkdir -p data/workflows
+
+# Copy your N8N exports
+cp my-workflow.json data/workflows/
+
+# Trigger reindex (requires ADMIN_TOKEN)
+curl -X POST "http://localhost:8000/api/v1/workflows/reindex?admin_token=YOUR_TOKEN"
 ```
 
 ## 🔧 Customization

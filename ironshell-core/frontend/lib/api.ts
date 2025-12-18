@@ -246,3 +246,93 @@ export async function createBulkTrades(trades: Omit<Trade, 'id'>[]) {
     body: JSON.stringify(trades),
   })
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// WORKFLOW AUTOMATION
+// ══════════════════════════════════════════════════════════════════════════════
+
+export interface WorkflowSummary {
+  id?: number
+  filename: string
+  name: string
+  active: boolean
+  description: string
+  trigger_type: string
+  complexity: string
+  node_count: number
+  integrations: string[]
+  tags: string[]
+  category: string
+}
+
+export interface WorkflowSearchResponse {
+  workflows: WorkflowSummary[]
+  total: number
+  page: number
+  per_page: number
+  pages: number
+  query: string
+  filters: Record<string, any>
+}
+
+export interface WorkflowDetail {
+  metadata: WorkflowSummary
+  raw_json: Record<string, any>
+  diagram?: string
+}
+
+export async function getWorkflows(params?: {
+  query?: string
+  trigger?: string
+  complexity?: string
+  category?: string
+  activeOnly?: boolean
+  page?: number
+  perPage?: number
+}): Promise<WorkflowSearchResponse> {
+  const searchParams = new URLSearchParams()
+  if (params?.query) searchParams.append('q', params.query)
+  if (params?.trigger) searchParams.append('trigger', params.trigger)
+  if (params?.complexity) searchParams.append('complexity', params.complexity)
+  if (params?.category) searchParams.append('category', params.category)
+  if (params?.activeOnly) searchParams.append('active_only', 'true')
+  if (params?.page) searchParams.append('page', String(params.page))
+  if (params?.perPage) searchParams.append('per_page', String(params.perPage))
+
+  return fetchApi<WorkflowSearchResponse>(`/api/v1/workflows?${searchParams}`)
+}
+
+export async function getWorkflowDetail(filename: string): Promise<WorkflowDetail> {
+  return fetchApi<WorkflowDetail>(`/api/v1/workflows/${filename}`)
+}
+
+export async function getWorkflowDiagram(filename: string): Promise<{ diagram: string }> {
+  return fetchApi<{ diagram: string }>(`/api/v1/workflows/${filename}/diagram`)
+}
+
+export async function getWorkflowCategories(): Promise<{ categories: string[] }> {
+  return fetchApi<{ categories: string[] }>('/api/v1/workflows/categories')
+}
+
+export async function getWorkflowStats(): Promise<{
+  total: number
+  active: number
+  inactive: number
+  triggers: Record<string, number>
+  complexity: Record<string, number>
+  total_nodes: number
+  unique_integrations: number
+  last_indexed: string
+}> {
+  return fetchApi('/api/v1/workflows/stats')
+}
+
+export async function importWorkflow(
+  workflowData: Record<string, any>,
+  filename?: string
+): Promise<{ success: boolean; message: string; filename: string }> {
+  return fetchApi('/api/v1/workflows/import', {
+    method: 'POST',
+    body: JSON.stringify({ workflow_data: workflowData, filename }),
+  })
+}

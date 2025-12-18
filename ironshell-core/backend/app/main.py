@@ -23,7 +23,7 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.core.supabase_client import get_supabase_client
 from app.core.vector_store import VectorStoreManager
-from app.routers import ingest, analysis, feedback, trades
+from app.routers import ingest, analysis, feedback, trades, workflows
 
 # ══════════════════════════════════════════════════════════════════════════════
 # APPLICATION LIFESPAN MANAGEMENT
@@ -161,6 +161,7 @@ app.include_router(ingest.router, prefix="/api/v1/ingest", tags=["Data Ingestion
 app.include_router(analysis.router, prefix="/api/v1/analysis", tags=["AI Analysis"])
 app.include_router(feedback.router, prefix="/api/v1/feedback", tags=["Feedback Loop"])
 app.include_router(trades.router, prefix="/api/v1/trades", tags=["Trade Management"])
+app.include_router(workflows.router, prefix="/api/v1/workflows", tags=["Workflow Automation"])
 
 
 # ══════════════════════════════════════════════════════════════════════════════
